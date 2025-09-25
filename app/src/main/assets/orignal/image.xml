@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QCARConfig>
+  <Tracking>
+    <ImageTarget name="002_cleyon" size="0.100000 0.069915" />
+    <ImageTarget name="001_stones_jpg" size="0.100000 0.069915" />
+  </Tracking>
+</QCARConfig>

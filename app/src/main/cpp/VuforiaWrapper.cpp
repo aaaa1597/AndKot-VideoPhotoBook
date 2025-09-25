@@ -102,7 +102,7 @@ JNI_OnLoad(JavaVM* vm, void* reserved)
 
 
 JNIEXPORT void JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_initAR(JNIEnv *env, jclass claz,
+Java_com_tks_videophotobook_VuforiaWrapperKt_initAR(JNIEnv *env, jclass claz,
                                                               jobject activity,
                                                               jobject assetManager,
                                                               jint target) {
@@ -179,7 +179,7 @@ Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_initAR(JNIEnv *env, jcl
 
 
 JNIEXPORT jboolean JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_startAR(JNIEnv *env, jclass clazz) {
+Java_com_tks_videophotobook_VuforiaWrapperKt_startAR(JNIEnv *env, jclass clazz) {
     // Update usingARCore flag to avoid checking this every frame
     auto platformController = controller.getPlatformController();
     assert(platformController);
@@ -207,13 +207,13 @@ Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_startAR(JNIEnv *env, jc
 
 
 JNIEXPORT void JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_stopAR(JNIEnv *env, jclass clazz) {
+Java_com_tks_videophotobook_VuforiaWrapperKt_stopAR(JNIEnv *env, jclass clazz) {
     controller.stopAR();
 }
 
 
 JNIEXPORT void JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_deinitAR(JNIEnv *env, jclass clazz) {
+Java_com_tks_videophotobook_VuforiaWrapperKt_deinitAR(JNIEnv *env, jclass clazz) {
     controller.deinitAR();
 
     gWrapperData.assetManager = nullptr;
@@ -223,19 +223,19 @@ Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_deinitAR(JNIEnv *env, j
 
 
 JNIEXPORT void JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_cameraPerformAutoFocus(JNIEnv *env, jclass clazz) {
+Java_com_tks_videophotobook_VuforiaWrapperKt_cameraPerformAutoFocus(JNIEnv *env, jclass clazz) {
     controller.cameraPerformAutoFocus();
 }
 
 
 JNIEXPORT void JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_cameraRestoreAutoFocus(JNIEnv *env, jclass clazz) {
+Java_com_tks_videophotobook_VuforiaWrapperKt_cameraRestoreAutoFocus(JNIEnv *env, jclass clazz) {
     controller.cameraRestoreAutoFocus();
 }
 
 
 JNIEXPORT void JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_initRendering(JNIEnv *env, jclass clazz) {
+Java_com_tks_videophotobook_VuforiaWrapperKt_initRendering(JNIEnv *env, jclass clazz) {
     // Define clear color
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -247,7 +247,7 @@ Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_initRendering(JNIEnv *e
 
 
 JNIEXPORT void JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_setTextures(JNIEnv *env, jclass clazz,
+Java_com_tks_videophotobook_VuforiaWrapperKt_setTextures(JNIEnv *env, jclass clazz,
                                                                               jint astronautWidth,
                                                                               jint astronautHeight,
                                                                               jobject astronautByteBuffer) {
@@ -259,13 +259,13 @@ Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_setTextures(JNIEnv *env
 
 
 JNIEXPORT void JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_deinitRendering(JNIEnv *env, jclass clazz) {
+Java_com_tks_videophotobook_VuforiaWrapperKt_deinitRendering(JNIEnv *env, jclass clazz) {
     gWrapperData.renderer.deinit();
 }
 
 
 JNIEXPORT jboolean JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_configureRendering(JNIEnv *env, jclass clazz,
+Java_com_tks_videophotobook_VuforiaWrapperKt_configureRendering(JNIEnv *env, jclass clazz,
                                                                                      jint width,
                                                                                      jint height,
                                                                                      jint orientation,
@@ -276,7 +276,7 @@ Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_configureRendering(JNIE
 
 
 JNIEXPORT jboolean JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass clazz) {
+Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass clazz) {
     if (!controller.isARStarted())
     {
         return JNI_FALSE;
@@ -447,7 +447,7 @@ accessFusionProviderPointers()
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_initVideoTexture(JNIEnv *env, jclass clazz) {
+Java_com_tks_videophotobook_VuforiaWrapperKt_initVideoTexture(JNIEnv *env, jclass clazz) {
     gWrapperData.renderer._vTextureId = -1;
     glGenTextures(1, &gWrapperData.renderer._vTextureId);
     glBindTexture(GL_TEXTURE_EXTERNAL_OES, gWrapperData.renderer._vTextureId);
@@ -460,7 +460,7 @@ Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_initVideoTexture(JNIEnv
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_nativeOnSurfaceChanged(JNIEnv *env,
+Java_com_tks_videophotobook_VuforiaWrapperKt_nativeOnSurfaceChanged(JNIEnv *env,
                                                                                 jclass clazz,
                                                                                 jint width,
                                                                                 jint height) {
@@ -468,7 +468,7 @@ Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_nativeOnSurfaceChanged(
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_aaa_vuforiavideoplaybacksample_VuforiaWrapperKt_nativeSetVideoSize(JNIEnv *env,
+Java_com_tks_videophotobook_VuforiaWrapperKt_nativeSetVideoSize(JNIEnv *env,
                                                                             jclass clazz,
                                                                             jint width,
                                                                             jint height) {

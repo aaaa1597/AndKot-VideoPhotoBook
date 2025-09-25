@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "VuforiaVideoPlaybackSample"
+rootProject.name = "VideoPhotoBook"
 include(":app")
  

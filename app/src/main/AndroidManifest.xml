@@ -18,7 +18,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:enableOnBackInvokedCallback="true"
-        android:theme="@style/Theme.VuforiaVideoPlaybackSample">
+        android:theme="@style/Theme.VideoPhotoBook">
         <activity
             android:name=".MainActivity"
             android:exported="true">

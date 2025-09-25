@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.aaa.vuforiavideoplaybacksample"
+    namespace = "com.tks.videophotobook"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.aaa.vuforiavideoplaybacksample"
+        applicationId = "com.tks.videophotobook"
         minSdk = 33
         targetSdk = 36
         versionCode = 1

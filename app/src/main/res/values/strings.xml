@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">VuforiaVideoPlaybackSample</string>
+    <string name="app_name">VideoPhotoBook</string>
     <string name="ok">OK</string>
     <string name="error_dialog_title">Vuforia error</string>
 </resources>

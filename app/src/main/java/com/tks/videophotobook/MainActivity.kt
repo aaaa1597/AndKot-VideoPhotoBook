@@ -1,4 +1,4 @@
-package com.aaa.vuforiavideoplaybacksample
+package com.tks.videophotobook
 
 import android.Manifest
 import android.content.Context
@@ -27,7 +27,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.exoplayer.ExoPlayer
-import com.aaa.vuforiavideoplaybacksample.databinding.ActivityMainBinding
+import com.tks.videophotobook.databinding.ActivityMainBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

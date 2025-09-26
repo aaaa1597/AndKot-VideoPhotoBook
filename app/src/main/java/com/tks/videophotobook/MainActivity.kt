@@ -160,9 +160,11 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onDoubleTap(e: MotionEvent): Boolean {
                     super.onDoubleTap(e)
+                    val targetName = checkHit(e.x, e.y,_binding.viwGlsurface.width.toFloat(), _binding.viwGlsurface.height.toFloat())
+                    Log.d("aaaaa", "!!! Hit !!! targetName=$targetName")
                     return true
                 }
-            })
+        })
 
         onBackPressedDispatcher.addCallback(this) {
             // Hide the GLView while we clean up

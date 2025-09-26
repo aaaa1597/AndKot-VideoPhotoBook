@@ -13,14 +13,17 @@ countries.
 #include <GLES2/gl2ext.h>
 // clang-format on
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
 #include <android/asset_manager.h>
-
 #include "tiny_obj_loader.h"
-
 #include "VuforiaEngine/VuforiaEngine.h"
-
 #include <vector>
-
+#include <map>
+#include <array>
+#include <chrono>
 
 /// Class to encapsulate OpenGLES rendering for the sample
 class GLESRenderer
@@ -41,7 +44,7 @@ public:
     void renderWorldOrigin(VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix);
 
     /* Render a bounding box augmentation on an Video PlayBack */
-    void renderVideoPlayback(VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix, VuMatrix44F& scaledModelViewMatrix, const VuVector2F &markerSize);
+    void renderVideoPlayback(VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix, VuMatrix44F& scaledModelViewMatrix, const VuVector2F &markerSize, const std::string &targetName);
 
     /// Render a bounding box augmentation on an Image Target
     void renderImageTarget(VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix, VuMatrix44F& scaledModelViewMatrix);
@@ -97,6 +100,10 @@ public:
     GLint _vaTexCoordLoc = -1;
     GLint _vuProjectionMatrixLoc = -1;
     GLint _vuSamplerOES = -1;
+
+    /* NDC(正規化デバイス)座標系の矩形座標 */
+    using lastupdate = std::chrono::time_point<std::chrono::system_clock>;
+    std::map<std::string, std::pair<lastupdate, std::array<glm::vec2, 4>>> _ndcQuadPoints;
 
 private: // data members
     // For video background rendering

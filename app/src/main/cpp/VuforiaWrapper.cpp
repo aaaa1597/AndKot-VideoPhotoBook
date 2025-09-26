@@ -44,6 +44,8 @@ struct
     bool usingARCore{ false };
 } gWrapperData;
 
+bool checkPolygonHit(const glm::vec2& targetPoint, const std::array<glm::vec2, 4>& ndcQuadPoints);
+
 // Provider pointers that allow for interacting with ARCore
 std::optional<VuPlatformARCoreInfo> gARCoreInfo{};
 
@@ -328,7 +330,7 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass cla
             if (controller.getImageTargetResult(observation, trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, tergetName))
             {
                 if(tergetName == "001_stones_jpg")
-                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize);
+                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, tergetName);
                 else if(tergetName == "002_cleyon")
                     gWrapperData.renderer.renderImageTarget(trackableProjection, trackableModelView, trackableModelViewScaled);
             }
@@ -460,18 +462,52 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_initVideoTexture(JNIEnv *env, jclas
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_tks_videophotobook_VuforiaWrapperKt_nativeOnSurfaceChanged(JNIEnv *env,
-                                                                                jclass clazz,
-                                                                                jint width,
-                                                                                jint height) {
+Java_com_tks_videophotobook_VuforiaWrapperKt_nativeOnSurfaceChanged(JNIEnv *env, jclass clazz,
+                                                     jint width, jint height) {
     glViewport(0, 0, width, height);
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_tks_videophotobook_VuforiaWrapperKt_nativeSetVideoSize(JNIEnv *env,
-                                                                            jclass clazz,
-                                                                            jint width,
-                                                                            jint height) {
+Java_com_tks_videophotobook_VuforiaWrapperKt_nativeSetVideoSize(JNIEnv *env, jclass clazz,
+                                                 jint width, jint height) {
     gWrapperData.renderer._vVideoWidth = static_cast<float>(width);
     gWrapperData.renderer._vVideoHeight= static_cast<float>(height);
 }
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_tks_videophotobook_VuforiaWrapperKt_checkHit(JNIEnv *env, jclass clazz,
+                                                      jfloat x, jfloat y, jfloat screenW, jfloat screenH) {
+    for (const auto& [targetName, timeAndQuad] : gWrapperData.renderer._ndcQuadPoints) {
+        const auto& [lastUpdate, ndcQuadPoints] = timeAndQuad;
+        /* 最終更新時刻が1秒以上ならそのデータは無効 */
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - lastUpdate);
+        if(duration.count() > 1000) continue;
+
+        /* タッチ座標を スクリーン座標 → NDC(正規化デバイス座標-1～1)に変換 */
+        float ndcX = (2.0f * x / screenW) - 1.0f;
+        float ndcY = 1.0f - (2.0f * y / screenH); /* Y軸は反転してOpenGL系に合わせる */
+
+        /* タッチ座標と板ポリ座標でコリジョン判定 */
+        glm::vec2 touchPoint = glm::vec2(ndcX, ndcY);
+        bool ret = checkPolygonHit(touchPoint, ndcQuadPoints);
+        if(ret) return env->NewStringUTF(targetName.c_str());;
+    }
+    return env->NewStringUTF(std::string("").c_str());
+}
+
+/* 2Dベクトルの外積(z成分)の算出関数 */
+float cross2D(const glm::vec2& v1, const glm::vec2& v2) {
+    return v1.x * v2.y - v1.y * v2.x;
+}
+
+/* タッチ座標と四角形頂点座標からコリジョン判定 */
+/* 0 → 1 → 2 → 3 → 0 の淳で判定 */
+bool checkPolygonHit(const glm::vec2& targetPoint, const std::array<glm::vec2, 4>& ndcQuadPoints) {
+    float z0 = cross2D(ndcQuadPoints[1] - ndcQuadPoints[0], targetPoint - ndcQuadPoints[0]);
+    float z1 = cross2D(ndcQuadPoints[2] - ndcQuadPoints[1], targetPoint - ndcQuadPoints[1]);
+    float z2 = cross2D(ndcQuadPoints[3] - ndcQuadPoints[2], targetPoint - ndcQuadPoints[2]);
+    float z3 = cross2D(ndcQuadPoints[0] - ndcQuadPoints[3], targetPoint - ndcQuadPoints[3]);
+    return (z0 >= 0 && z1 >= 0 && z2 >= 0 && z3 >= 0) || /* 全部が0以上　もしくは */
+           (z0 <= 0 && z1 <= 0 && z2 <= 0 && z3 <= 0);   /* 全部が0以下 */
+}
+

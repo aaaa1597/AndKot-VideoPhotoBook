@@ -6,14 +6,12 @@ countries.
 ===============================================================================*/
 
 #include "GLESRenderer.h"
-
 #include "GLESUtils.h"
 #include "Shaders.h"
-
 #include "MemoryStream.h"
 #include "Models.h"
-
 #include <android/asset_manager.h>
+#include <chrono>
 
 bool
 GLESRenderer::init(AAssetManager* assetManager)
@@ -152,7 +150,7 @@ GLESRenderer::renderWorldOrigin(VuMatrix44F& projectionMatrix, VuMatrix44F& mode
 }
 
 void
-GLESRenderer::renderVideoPlayback(VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix, VuMatrix44F& scaledModelViewMatrix, const VuVector2F &markerSize) {
+GLESRenderer::renderVideoPlayback(VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix, VuMatrix44F& scaledModelViewMatrix, const VuVector2F &markerSize, const std::string &targetName) {
     VuMatrix44F scaledModelViewProjectionMatrix = vuMatrix44FMultiplyMatrix(projectionMatrix, scaledModelViewMatrix);
 
     glEnable(GL_DEPTH_TEST);
@@ -173,12 +171,11 @@ GLESRenderer::renderVideoPlayback(VuMatrix44F& projectionMatrix, VuMatrix44F& mo
     else    /* When the marker is taller than the video or has the same aspect ratio. */
         scaleY = scaleY * (markerAspect / videoAspect);
 
-
     GLfloat vertices[] = {
         -scaleX, -scaleY, 0.0f, /* 左下 */
          scaleX, -scaleY, 0.0f, /* 右下 */
         -scaleX,  scaleY, 0.0f, /* 左上 */
-         scaleX, scaleY, 0.0f  /* 右上 */
+         scaleX,  scaleY, 0.0f  /* 右上 */
     };
 
     GLfloat texCoords[] = {
@@ -194,6 +191,27 @@ GLESRenderer::renderVideoPlayback(VuMatrix44F& projectionMatrix, VuMatrix44F& mo
     glEnableVertexAttribArray(_vaTexCoordLoc);
 
     glUniformMatrix4fv(_vuProjectionMatrixLoc, 1, GL_FALSE, &scaledModelViewProjectionMatrix.data[0]);
+
+    /* 当たり判定用に板ポリ座標をNDC(正規化デバイス座標)に変換して保持 */
+    std::array<glm::vec2, 4> ndcQuadPoints = {};
+    int idx = 0;
+    for(int lpct : {0,1,3,2/*左下→右下→右上→左上→左下の順番にする必要がある*/}) {
+        glm::vec4 pos = glm::vec4(vertices[lpct*3], vertices[lpct*3+1],vertices[lpct*3+2],1.0f);
+        glm::vec4 glpos = glm::make_mat4(scaledModelViewProjectionMatrix.data) * pos;
+        glm::vec3 ndcpos = glm::vec3(glpos) / glpos.w;
+        ndcQuadPoints[idx++] = glm::vec2(ndcpos);
+    }
+    _ndcQuadPoints[targetName] = std::pair(std::chrono::system_clock::now(), ndcQuadPoints);
+    /* 古い(1000[ms]過ぎた)データは削除する */
+    for (auto it = _ndcQuadPoints.begin(); it != _ndcQuadPoints.end(); ) {
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now() - it->second.first
+        );
+        if (duration.count() > 1000)
+            it = _ndcQuadPoints.erase(it);  /* erase() は次のイテレータを返す */
+        else
+            ++it;
+    }
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_EXTERNAL_OES, _vTextureId);

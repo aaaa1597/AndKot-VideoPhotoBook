@@ -3,6 +3,7 @@ package com.tks.videophotobook
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
@@ -18,6 +19,8 @@ import android.view.MotionEvent
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.addCallback
@@ -279,6 +282,20 @@ class MainActivity : AppCompatActivity() {
         } else {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, 0)
             mPermissionsRequested = true
+        }
+        applyStatusBarVisibility()
+    }
+
+    private fun applyStatusBarVisibility() {
+        val controller = window.insetsController ?: return
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            /* 横画面 → ステータスバー非表示 */
+            controller.hide(WindowInsets.Type.statusBars())
+            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+        else {
+            /* 縦画面 → ステータスバー表示 */
+            controller.show(WindowInsets.Type.statusBars())
         }
     }
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -9,16 +10,15 @@
     <android.opengl.GLSurfaceView
         android:id="@+id/viw_glsurface"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"/>
 
-    <androidx.media3.ui.PlayerView
-        android:id="@+id/viw_styled_player"
+    <androidx.media3.ui.PlayerControlView
+        android:id="@+id/viw_PlayerControls"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:show_buffering="when_playing"
-        app:use_controller="true"
-        app:resize_mode="fit"
-        android:visibility="gone"/>
+        android:layout_height="wrap_content"
+        app:time_bar_scrubbing_enabled="true"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
     <ProgressBar
         android:id="@+id/loading_indicator"

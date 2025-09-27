@@ -28,6 +28,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.tks.videophotobook.databinding.ActivityMainBinding
 import kotlinx.coroutines.CoroutineScope
@@ -77,11 +78,13 @@ class MainActivity : AppCompatActivity() {
         _binding.viwGlsurface.setEGLContextClientVersion(3)
         _binding.viwGlsurface.holder.setFormat(PixelFormat.TRANSLUCENT)
         _binding.viwGlsurface.setEGLConfigChooser(8,8,8,8,0,0)
-        _binding.viwGlsurface.setZOrderOnTop(true)
+//        _binding.viwGlsurface.setZOrderOnTop(true)
         _binding.viwGlsurface.setRenderer(object : GLSurfaceView.Renderer {
             override fun onSurfaceCreated(gl: GL10, config: EGLConfig) {
                 initRendering()
             }
+
+            @UnstableApi
             override fun onSurfaceChanged(gl: GL10, width: Int, height: Int) {
                 // Store values for later use
                 mWidth = width
@@ -130,6 +133,8 @@ class MainActivity : AppCompatActivity() {
                     val surfaceTexture = SurfaceTexture(textureId)
                     val surface = Surface(surfaceTexture)
                     playerSurfaceMap.put("001_stones_jpg", PlayerSurface(surfaceTexture, surface, exoPlayer, false))
+                    _binding.viwPlayerControls.player = exoPlayer
+                    _binding.viwPlayerControls.bringToFront()
                     exoPlayer.setVideoSurface(surface)
                 }
 
@@ -237,7 +242,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @UnstableApi
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if(event.action == MotionEvent.ACTION_DOWN) {
+            if( _binding.viwPlayerControls.isFullyVisible)
+                _binding.viwPlayerControls.hide()
+            else
+                _binding.viwPlayerControls.show()
+        }
+
         gestureDetector.onTouchEvent(event)
         return super.onTouchEvent(event)
     }
@@ -325,6 +338,7 @@ class MainActivity : AppCompatActivity() {
         }
         // Show the GLView
         lifecycleScope.launch(Dispatchers.Main) {
+            _binding.loadingIndicator.visibility = View.GONE
             _binding.viwGlsurface.visibility = View.VISIBLE
         }
     }

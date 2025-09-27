@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         var surfaceTexture: SurfaceTexture,
         var surface: Surface,
         var exoPlayer: ExoPlayer,
-        var isPlaying: Boolean = false
+        var isPlaying: Boolean
     )
     private val playerSurfaceMap = mutableMapOf<String, PlayerSurface>()
     private lateinit var _binding: ActivityMainBinding
@@ -116,7 +116,7 @@ class MainActivity : AppCompatActivity() {
                             setMediaItem(mediaItem)
 
                             repeatMode = Player.REPEAT_MODE_ONE /* Loop Playback. */
-                            playWhenReady = true /* Start playback immediately. */
+                            playWhenReady = false /* Start playback immediately. */
 
                             addListener(object : Player.Listener {
                                         override fun onVideoSizeChanged(videoSize: VideoSize) {
@@ -129,7 +129,7 @@ class MainActivity : AppCompatActivity() {
                     /* Create the surfaceTexture */
                     val surfaceTexture = SurfaceTexture(textureId)
                     val surface = Surface(surfaceTexture)
-                    playerSurfaceMap.put("001_stones_jpg", PlayerSurface(surfaceTexture, surface, exoPlayer))
+                    playerSurfaceMap.put("001_stones_jpg", PlayerSurface(surfaceTexture, surface, exoPlayer, false))
                     exoPlayer.setVideoSurface(surface)
                 }
 
@@ -158,7 +158,6 @@ class MainActivity : AppCompatActivity() {
 
                     // OpenGL rendering of Video Background and augmentations is implemented in native code
                     val detectTargetStrs = renderFrame()
-                    Log.d("aaaaa", "detected!!! =${detectTargetStrs.joinToString(",")}")
                     Handler(Looper.getMainLooper()).post {
                         for( (key, value) in playerSurfaceMap) {
                             /* 検出してて未再生なら再生 */

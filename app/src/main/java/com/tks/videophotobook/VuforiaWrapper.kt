@@ -7,7 +7,7 @@ import java.nio.ByteBuffer
 external fun initRendering()
 external fun setTextures(astronautWidth: Int, astronautHeight: Int, astronautBytes: ByteBuffer)
 external fun configureRendering(width: Int, height: Int, orientation: Int, rotation: Int) : Boolean
-external fun renderFrame() : Boolean
+external fun renderFrame() : Array<String>
 external fun deinitRendering()
 external fun initAR(activity: Activity, assetManager: AssetManager, target: Int)
 external fun deinitAR()

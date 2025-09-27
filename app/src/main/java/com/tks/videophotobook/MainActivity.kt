@@ -10,6 +10,8 @@ import android.graphics.SurfaceTexture
 import android.opengl.GLSurfaceView
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -44,6 +46,13 @@ const val MODEL_TARGET_ID = 1
 val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
 
 class MainActivity : AppCompatActivity() {
+    data class PlayerSurface (
+        var surfaceTexture: SurfaceTexture,
+        var surface: Surface,
+        var exoPlayer: ExoPlayer,
+        var isPlaying: Boolean = false
+    )
+    private val playerSurfaceMap = mutableMapOf<String, PlayerSurface>()
     private lateinit var _binding: ActivityMainBinding
     private var mVuforiaStarted = false
     private var mSurfaceChanged = false
@@ -52,8 +61,6 @@ class MainActivity : AppCompatActivity() {
     private var mWidth = 0
     private var mHeight = 0
     private var mPermissionsRequested = false;
-    private var surfaceTexture: SurfaceTexture? = null
-    private var exoPlayer: ExoPlayer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,10 +105,32 @@ class MainActivity : AppCompatActivity() {
                 val textureId = initVideoTexture()
                 if (textureId < 0)
                     throw RuntimeException("Failed to create native texture")
+
+                /* Create the ExoPlayer */
                 CoroutineScope(Dispatchers.Main).launch {
-                    surfaceTexture = SurfaceTexture(textureId)
+                    /* Create the ExoPlayer */
+                    val exoPlayer = ExoPlayer.Builder(this@MainActivity).build().apply {
+                            /* Specify the video file located in res/raw. */
+                            val uri = "android.resource://${this@MainActivity.packageName}/${R.raw.vuforiasizzlereel}"
+                            val mediaItem = MediaItem.fromUri(uri)
+                            setMediaItem(mediaItem)
+
+                            repeatMode = Player.REPEAT_MODE_ONE /* Loop Playback. */
+                            playWhenReady = true /* Start playback immediately. */
+
+                            addListener(object : Player.Listener {
+                                        override fun onVideoSizeChanged(videoSize: VideoSize) {
+                                            /* Pass the video size to the C++ side. */
+                                            nativeSetVideoSize(videoSize.width, videoSize.height)
+                                        }
+                                    })
+                            prepare()
+                        }
+                    /* Create the surfaceTexture */
+                    val surfaceTexture = SurfaceTexture(textureId)
                     val surface = Surface(surfaceTexture)
-                    exoPlayer?.setVideoSurface(surface)
+                    playerSurfaceMap.put("001_stones_jpg", PlayerSurface(surfaceTexture, surface, exoPlayer))
+                    exoPlayer.setVideoSurface(surface)
                 }
 
                 nativeOnSurfaceChanged(width, height)
@@ -113,7 +142,11 @@ class MainActivity : AppCompatActivity() {
             override fun onDrawFrame(gl: GL10) {
                 if (mVuforiaStarted) {
 
-                    surfaceTexture?.updateTexImage()
+                    /* isPlayingはUIスレッドでしかアクセスできない */
+                    for( (key, value) in playerSurfaceMap) {
+                        if(value.isPlaying)
+                            value.surfaceTexture.updateTexImage()
+                    }
 
                     if (mSurfaceChanged || mWindowDisplayRotation != this@MainActivity.display.rotation) {
                         mSurfaceChanged = false
@@ -124,8 +157,23 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     // OpenGL rendering of Video Background and augmentations is implemented in native code
-                    val didRender = renderFrame()
-                    if (didRender && _binding.loadingIndicator.visibility != View.GONE) {
+                    val detectTargetStrs = renderFrame()
+                    Log.d("aaaaa", "detected!!! =${detectTargetStrs.joinToString(",")}")
+                    Handler(Looper.getMainLooper()).post {
+                        for( (key, value) in playerSurfaceMap) {
+                            /* 検出してて未再生なら再生 */
+                            if(detectTargetStrs.contains(key) and !value.isPlaying) {
+                                value.exoPlayer.play()
+                                value.isPlaying = true
+                            }
+                            /* 検出なしで再生中なら停止 */
+                            else if( !detectTargetStrs.contains(key) and value.isPlaying) {
+                                value.exoPlayer.pause()
+                                value.isPlaying = false
+                            }
+                        }
+                    }
+                    if (detectTargetStrs.size>0 && _binding.loadingIndicator.visibility != View.GONE) {
                         lifecycleScope.launch {
                             _binding.loadingIndicator.visibility = View.GONE
                         }
@@ -174,26 +222,6 @@ class MainActivity : AppCompatActivity() {
             mVuforiaStarted = false
             deinitAR()
         }
-
-        exoPlayer = ExoPlayer.Builder(this).build().apply {
-            /* Specify the video file located in res/raw. */
-            val uri = "android.resource://${this@MainActivity.packageName}/${R.raw.vuforiasizzlereel}"
-            Log.d("aaaaa", "uri=$uri")
-            val mediaItem = MediaItem.fromUri(uri)
-            setMediaItem(mediaItem)
-
-            repeatMode = Player.REPEAT_MODE_ONE /* Loop Playback. */
-            playWhenReady = true /* Start playback immediately. */
-
-            addListener(object : Player.Listener {
-                override fun onVideoSizeChanged(videoSize: VideoSize) {
-                    /* Pass the video size to the C++ side. */
-                    nativeSetVideoSize(videoSize.width, videoSize.height)
-                }
-            })
-
-            prepare()
-        }
     }
 
     private fun runtimePermissionsGranted(): Boolean {
@@ -236,8 +264,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        exoPlayer?.release()
-        exoPlayer = null
+        for( (key, value) in playerSurfaceMap) {
+            value.surface.release()
+            value.surfaceTexture.release()
+            value.exoPlayer.release()
+        }
+        playerSurfaceMap.clear()
         // Hide the GLView while we clean up
         _binding.viwGlsurface.visibility = View.INVISIBLE
         // Stop Vuforia Engine and call parent to navigate back

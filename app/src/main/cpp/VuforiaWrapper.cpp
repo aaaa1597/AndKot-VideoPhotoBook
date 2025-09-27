@@ -277,13 +277,26 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_configureRendering(JNIEnv *env, jcl
 }
 
 
-JNIEXPORT jboolean JNICALL
+jobjectArray makeRetString(JNIEnv *env, std::vector<std::string> strs) {
+    jclass strClass = env->FindClass("java/lang/String");
+    jobjectArray retStringArray = env->NewObjectArray((jsize)strs.size(), strClass, nullptr);
+    for (int idx = 0; idx < strs.size(); idx++) {
+        jstring jniString = env->NewStringUTF(strs[idx].c_str());
+        env->SetObjectArrayElement(retStringArray, idx, jniString);
+        env->DeleteLocalRef(jniString);
+    }
+    return retStringArray;
+}
+
+JNIEXPORT jobjectArray JNICALL
 Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass clazz) {
     if (!controller.isARStarted())
     {
-        return JNI_FALSE;
+        std::vector<std::string> none{"none"};
+        return makeRetString(env, none);
     }
 
+    std::vector<std::string> retStrs;
     // Clear colour and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -329,6 +342,7 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass cla
             std::string tergetName;
             if (controller.getImageTargetResult(observation, trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, tergetName))
             {
+                retStrs.push_back(tergetName);
                 if(tergetName == "001_stones_jpg")
                     gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, tergetName);
                 else if(tergetName == "002_cleyon")
@@ -340,7 +354,7 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass cla
 
     controller.finishRender();
 
-    return JNI_TRUE;
+    return makeRetString(env, retStrs);
 }
 
 
@@ -510,4 +524,3 @@ bool checkPolygonHit(const glm::vec2& targetPoint, const std::array<glm::vec2, 4
     return (z0 >= 0 && z1 >= 0 && z2 >= 0 && z3 >= 0) || /* 全部が0以上　もしくは */
            (z0 <= 0 && z1 <= 0 && z2 <= 0 && z3 <= 0);   /* 全部が0以下 */
 }
-

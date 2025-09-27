@@ -11,6 +11,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/viw_styled_player"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:show_buffering="when_playing"
+        app:use_controller="true"
+        app:resize_mode="fit"
+        android:visibility="gone"/>
+
     <ProgressBar
         android:id="@+id/loading_indicator"
         android:layout_width="wrap_content"

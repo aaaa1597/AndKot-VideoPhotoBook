@@ -19,3 +19,4 @@ external fun checkHit(x: Float, y: Float, screenW: Float, screenH: Float): Strin
 external fun initVideoTexture(): Int
 external fun nativeOnSurfaceChanged(width: Int, height: Int)
 external fun nativeSetVideoSize(width: Int, height: Int)
+external fun setFullScreenMode(isFullScreenMode: Boolean)

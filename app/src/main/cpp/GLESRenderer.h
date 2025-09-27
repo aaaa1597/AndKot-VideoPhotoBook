@@ -92,6 +92,11 @@ public:
     /* Screen size and video size */
     float _vVideoWidth = 0.0f;
     float _vVideoHeight = 0.0f;
+    float _screenWidth  = 0.0f;
+    float _screenHeight = 0.0f;
+
+    /* Fullscreen mode flag */
+    bool  _fullscreenFlg = false;
 
     /* For video playback rendering */
     GLuint _vTextureId = 0;

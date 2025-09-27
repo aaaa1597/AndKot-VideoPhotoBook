@@ -273,6 +273,8 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_configureRendering(JNIEnv *env, jcl
                                                                                      jint orientation,
                                                                                      jint rotation) {
     std::vector<int> androidOrientation{ orientation, rotation };
+    gWrapperData.renderer._screenWidth = width;
+    gWrapperData.renderer._screenHeight= height;
     return controller.configureRendering(width, height, androidOrientation.data()) ? JNI_TRUE : JNI_FALSE;
 }
 
@@ -479,6 +481,8 @@ JNIEXPORT void JNICALL
 Java_com_tks_videophotobook_VuforiaWrapperKt_nativeOnSurfaceChanged(JNIEnv *env, jclass clazz,
                                                      jint width, jint height) {
     glViewport(0, 0, width, height);
+    gWrapperData.renderer._screenWidth = static_cast<float>(width);
+    gWrapperData.renderer._screenHeight= static_cast<float>(height);
 }
 extern "C"
 JNIEXPORT void JNICALL
@@ -504,6 +508,7 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_checkHit(JNIEnv *env, jclass clazz,
         /* タッチ座標と板ポリ座標でコリジョン判定 */
         glm::vec2 touchPoint = glm::vec2(ndcX, ndcY);
         bool ret = checkPolygonHit(touchPoint, ndcQuadPoints);
+        /* 見つかったらreturn */
         if(ret) return env->NewStringUTF(targetName.c_str());;
     }
     return env->NewStringUTF(std::string("").c_str());
@@ -523,4 +528,12 @@ bool checkPolygonHit(const glm::vec2& targetPoint, const std::array<glm::vec2, 4
     float z3 = cross2D(ndcQuadPoints[0] - ndcQuadPoints[3], targetPoint - ndcQuadPoints[3]);
     return (z0 >= 0 && z1 >= 0 && z2 >= 0 && z3 >= 0) || /* 全部が0以上　もしくは */
            (z0 <= 0 && z1 <= 0 && z2 <= 0 && z3 <= 0);   /* 全部が0以下 */
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_tks_videophotobook_VuforiaWrapperKt_setFullScreenMode(JNIEnv *env, jclass clazz,
+                                                               jboolean is_full_screen_mode) {
+    gWrapperData.renderer._fullscreenFlg = (is_full_screen_mode == JNI_TRUE);
+    __android_log_print(ANDROID_LOG_DEBUG, "aaaaa", "_fullscreenFlg=%d", gWrapperData.renderer._fullscreenFlg);
 }

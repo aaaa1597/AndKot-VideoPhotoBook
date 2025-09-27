@@ -21,9 +21,11 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.addCallback
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.os.HandlerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
@@ -55,6 +57,7 @@ class MainActivity : AppCompatActivity() {
     )
     private val playerSurfaceMap = mutableMapOf<String, PlayerSurface>()
     private lateinit var _binding: ActivityMainBinding
+    private var isFullScreenMode = false
     private var mVuforiaStarted = false
     private var mSurfaceChanged = false
     private var mWindowDisplayRotation = Surface.ROTATION_0
@@ -202,20 +205,37 @@ class MainActivity : AppCompatActivity() {
         }
 
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-                override fun onSingleTapUp(e: MotionEvent): Boolean {
-                    cameraPerformAutoFocus()
-                    Timer("RestoreAutoFocus", false).schedule(2000) {
-                        cameraRestoreAutoFocus()
-                    }
-                    return true
-                }
+            /* シングルタップの実際の処理 */
+            val handler = HandlerCompat.createAsync(Looper.getMainLooper())
+            @UnstableApi
+            private val singleTapAction = Runnable {
+                /* 再生/停止/早送り/巻戻しコントローラ表示/非表示 */
+                if( _binding.viwPlayerControls.isFullyVisible)
+                    _binding.viwPlayerControls.hide()
+                else
+                    _binding.viwPlayerControls.show()
+            }
 
-                override fun onDoubleTap(e: MotionEvent): Boolean {
-                    super.onDoubleTap(e)
-                    val targetName = checkHit(e.x, e.y,_binding.viwGlsurface.width.toFloat(), _binding.viwGlsurface.height.toFloat())
-                    Log.d("aaaaa", "!!! Hit !!! targetName=$targetName")
-                    return true
+            @UnstableApi
+            override fun onSingleTapUp(e: MotionEvent): Boolean {
+                handler.postDelayed( singleTapAction, 200.toLong()) // シングルタップの処理を少し遅延させる
+                cameraPerformAutoFocus()
+                Timer("RestoreAutoFocus", false).schedule(2000) {
+                    cameraRestoreAutoFocus()
                 }
+                return true
+            }
+
+            @UnstableApi
+            override fun onDoubleTap(e: MotionEvent): Boolean {
+                super.onDoubleTap(e)
+                handler.removeCallbacks(singleTapAction)
+//                    val targetName = checkHit(e.x, e.y,_binding.viwGlsurface.width.toFloat(), _binding.viwGlsurface.height.toFloat())
+//                    Log.d("aaaaa", "!!! Hit !!! targetName=$targetName")
+                isFullScreenMode = !isFullScreenMode
+                setFullScreenMode(isFullScreenMode)
+                return true
+            }
         })
 
         onBackPressedDispatcher.addCallback(this) {
@@ -244,13 +264,6 @@ class MainActivity : AppCompatActivity() {
 
     @UnstableApi
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if(event.action == MotionEvent.ACTION_DOWN) {
-            if( _binding.viwPlayerControls.isFullyVisible)
-                _binding.viwPlayerControls.hide()
-            else
-                _binding.viwPlayerControls.show()
-        }
-
         gestureDetector.onTouchEvent(event)
         return super.onTouchEvent(event)
     }

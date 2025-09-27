@@ -159,17 +159,31 @@ GLESRenderer::renderVideoPlayback(VuMatrix44F& projectionMatrix, VuMatrix44F& mo
 
     glUseProgram(_vProgram);
 
-    /* Calculation of vertex coordinates considering the aspect ratio. */
-    float markerAspect = markerSize.data[0] / markerSize.data[1];
-    float videoAspect = _vVideoWidth / _vVideoHeight;
-
     float scaleX = 0.5f;
     float scaleY = 0.5f;
 
-    if(markerAspect > videoAspect)  /* When the marker is wider than the video. */
-        scaleX = scaleX * (videoAspect / markerAspect);
-    else    /* When the marker is taller than the video or has the same aspect ratio. */
-        scaleY = scaleY * (markerAspect / videoAspect);
+    if(_fullscreenFlg) {
+        scaleX = 1.0f;
+        scaleY = 1.0f;
+
+        float videoAspect = _vVideoWidth / _vVideoHeight;
+        float screenAspect= _screenWidth / _screenHeight;
+
+        if (screenAspect > videoAspect) /* 横長動画 → 横を1.0にして縦を縮める */
+            scaleX = videoAspect / screenAspect;
+        else    /* 縦長動画 → 縦を1.0にして横を縮める */
+            scaleY = screenAspect / videoAspect;
+    }
+    else {
+        /* Calculation of vertex coordinates considering the aspect ratio. */
+        float markerAspect = markerSize.data[0] / markerSize.data[1];
+        float videoAspect = _vVideoWidth / _vVideoHeight;
+
+        if(markerAspect > videoAspect)  /* When the marker is wider than the video. */
+            scaleX = scaleX * (videoAspect / markerAspect);
+        else    /* When the marker is taller than the video or has the same aspect ratio. */
+            scaleY = scaleY * (markerAspect / videoAspect);
+    };
 
     GLfloat vertices[] = {
         -scaleX, -scaleY, 0.0f, /* 左下 */
@@ -190,7 +204,17 @@ GLESRenderer::renderVideoPlayback(VuMatrix44F& projectionMatrix, VuMatrix44F& mo
     glEnableVertexAttribArray(_vaPosition);
     glEnableVertexAttribArray(_vaTexCoordLoc);
 
-    glUniformMatrix4fv(_vuProjectionMatrixLoc, 1, GL_FALSE, &scaledModelViewProjectionMatrix.data[0]);
+    if(_fullscreenFlg) {
+        const GLfloat identityMatrix[16] = {
+                1.0f, 0.0f, 0.0f, 0.0f,
+                0.0f, 1.0f, 0.0f, 0.0f,
+                0.0f, 0.0f, 1.0f, 0.0f,
+                0.0f, 0.0f, 0.0f, 1.0f
+        };
+        glUniformMatrix4fv(_vuProjectionMatrixLoc, 1, GL_FALSE, identityMatrix);
+    }
+    else
+        glUniformMatrix4fv(_vuProjectionMatrixLoc, 1, GL_FALSE, &scaledModelViewProjectionMatrix.data[0]);
 
     /* 当たり判定用に板ポリ座標をNDC(正規化デバイス座標)に変換して保持 */
     std::array<glm::vec2, 4> ndcQuadPoints = {};

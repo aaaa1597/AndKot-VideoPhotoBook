@@ -344,6 +344,7 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass cla
             std::string tergetName;
             if (controller.getImageTargetResult(observation, trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, tergetName))
             {
+                __android_log_print(ANDROID_LOG_DEBUG, "aaaaa", "!!!! detected target name=%s", tergetName.c_str());
                 retStrs.push_back(tergetName);
                 if(tergetName == "001_stones_jpg")
                     gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, tergetName);

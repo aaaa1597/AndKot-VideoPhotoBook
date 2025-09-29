@@ -727,13 +727,16 @@ AppController::createObservers()
 
     if (mTarget == IMAGE_TARGET_ID)
     {
-        for(int lpct = 0; lpct < 2; lpct++) {
+        for(int lpct = 0; lpct < 7; lpct++) {
             auto imageTargetConfig = vuImageTargetConfigDefault();
-            imageTargetConfig.databasePath = "orignal/image.xml";
-            if(lpct == 0)
-                imageTargetConfig.targetName = "001_stones_jpg";
-            else
-                imageTargetConfig.targetName = "002_cleyon";
+            imageTargetConfig.databasePath = "ai_001.xml";
+            if(lpct == 0)      imageTargetConfig.targetName = "000_frm";
+            else if(lpct == 1) imageTargetConfig.targetName = "001_frm";
+            else if(lpct == 2) imageTargetConfig.targetName = "002_frm";
+            else if(lpct == 3) imageTargetConfig.targetName = "003_frm";
+            else if(lpct == 4) imageTargetConfig.targetName = "004_frm";
+            else if(lpct == 5) imageTargetConfig.targetName = "005_frm";
+            else if(lpct == 6) imageTargetConfig.targetName = "006_frm";
             imageTargetConfig.activate = VU_FALSE;
 
             VuObserver* observer = nullptr;

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QCARConfig>
+  <Tracking>
+    <ImageTarget name="006_frm" size="0.070000 0.039375" />
+    <ImageTarget name="005_frm" size="0.070000 0.039375" />
+    <ImageTarget name="004_frm" size="0.070000 0.039375" />
+    <ImageTarget name="003_frm" size="0.070000 0.039375" />
+    <ImageTarget name="002_frm" size="0.070000 0.039375" />
+    <ImageTarget name="001_frm" size="0.070000 0.039375" />
+    <ImageTarget name="000_frm" size="0.070000 0.039375" />
+  </Tracking>
+</QCARConfig>

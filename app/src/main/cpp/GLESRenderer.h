@@ -35,6 +35,7 @@ public:
     void deinit();
 
     void setAstronautTexture(int width, int height, unsigned char* bytes);
+    void setPauseTexture(int width, int height, unsigned char* bytes);
 
     /// Render the video background
     void renderVideoBackground(const VuMatrix44F& projectionMatrix, const float* vertices, const float* textureCoordinates,
@@ -106,6 +107,14 @@ public:
     GLint _vuProjectionMatrixLoc = -1;
     GLint _vuSamplerOES = -1;
 
+    /* For pause.png rendering */
+    GLuint _pTextureId = 0;
+    GLuint _pProgram = 0;
+    GLint _paPosition = -1;
+    GLint _paTexCoordLoc = -1;
+    GLint _puProjectionMatrixLoc = -1;
+    GLint _puSampler2D = -1;
+
     /* NDC(正規化デバイス)座標系の矩形座標 */
     using lastupdate = std::chrono::time_point<std::chrono::system_clock>;
     std::map<std::string, std::pair<lastupdate, std::array<glm::vec2, 4>>> _ndcQuadPoints;
@@ -143,7 +152,8 @@ private: // data members
     int mAstronautVertexCount;
     std::vector<float> mAstronautVertices;
     std::vector<float> mAstronautTexCoords;
-    GLuint mAstronautTextureUnit = -1;
+    GLuint mAstronautTextureId = -1;
+    GLuint mPauseTextureId = -1;
 };
 
 #endif //_VUFORIA_GLESRENDERER_H_

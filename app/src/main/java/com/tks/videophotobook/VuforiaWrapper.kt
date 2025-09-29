@@ -5,7 +5,7 @@ import android.content.res.AssetManager
 import java.nio.ByteBuffer
 
 external fun initRendering()
-external fun setTextures(astronautWidth: Int, astronautHeight: Int, astronautBytes: ByteBuffer)
+external fun setTextures(astronautWidth: Int, astronautHeight: Int, astronautBytes: ByteBuffer, pauseWidth: Int, pauseHeight: Int, pauseBytes: ByteBuffer)
 external fun configureRendering(width: Int, height: Int, orientation: Int, rotation: Int) : Boolean
 external fun renderFrame() : Array<String>
 external fun deinitRendering()

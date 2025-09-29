@@ -401,7 +401,7 @@ AppController::createImageTargetList() {
 }
 
 bool
-AppController::getImageTargetResult(const VuObservation* observation, VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix, VuMatrix44F& scaledModelViewMatrix, VuVector2F& markerSize, std::string& targetName)
+AppController::getImageTargetResult(const VuObservation* observation, const VuVector2F& markerSize, VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix, VuMatrix44F& scaledModelViewMatrix)
 {
     if (mTarget != IMAGE_TARGET_ID)
         return false;
@@ -409,15 +409,8 @@ AppController::getImageTargetResult(const VuObservation* observation, VuMatrix44
     VuPoseInfo poseInfo;
     REQUIRE_SUCCESS(vuObservationGetPoseInfo(observation, &poseInfo));
 
-    VuImageTargetObservationTargetInfo imageTargetInfo;
-    REQUIRE_SUCCESS(vuImageTargetObservationGetTargetInfo(observation, &imageTargetInfo));
-
     if (poseInfo.poseStatus == VU_OBSERVATION_POSE_STATUS_NO_POSE)
         return false;
-
-    targetName = imageTargetInfo.name;
-    markerSize.data[0] = imageTargetInfo.size.data[0];
-    markerSize.data[1] = imageTargetInfo.size.data[1];
 
     projectionMatrix = mCurrentRenderState.projectionMatrix;
 
@@ -430,8 +423,8 @@ AppController::getImageTargetResult(const VuObservation* observation, VuMatrix44
     // set it here to the larger dimension so that
     // a 3D augmentation can be shown
     VuVector3F scale;
-    scale.data[0] = imageTargetInfo.size.data[0];
-    scale.data[1] = imageTargetInfo.size.data[1];
+    scale.data[0] = markerSize.data[0];
+    scale.data[1] = markerSize.data[1];
     scale.data[2] = std::max(scale.data[0], scale.data[1]);
     scaledModelViewMatrix = vuMatrix44FScale(scale, modelViewMatrix);
 

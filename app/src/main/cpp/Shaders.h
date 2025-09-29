@@ -30,6 +30,25 @@ static const char* FRAGMENT_SHADER =
         "  gl_FragColor = texture2D(u_SamplerOES, v_TexCoord);\n"
         "}\n";
 
+static const char* VERTEX_SHADER_PAUSE =
+        "attribute vec4 a_Position;\n"
+        "attribute vec2 a_TexCoord;\n"
+        "uniform mat4 u_ProjectionMatrix;\n"
+        "varying vec2 v_TexCoord;\n"
+        "void main() {\n"
+        "  gl_Position = u_ProjectionMatrix * a_Position;\n"
+        "  v_TexCoord = a_TexCoord;\n"
+        "}\n";
+
+static const char* FRAGMENT_SHADER_PAUSE =
+        "precision mediump float;\n"
+        "varying vec2 v_TexCoord;\n"
+        "uniform sampler2D u_Sampler2D;\n"
+        "void main() {\n"
+        "  gl_FragColor = texture2D(u_Sampler2D, v_TexCoord);\n"
+        "}\n";
+
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // texture shader: vertexTexCoord in vertex shader, texture2D sample
 /////////////////////////////////////////////////////////////////////////////////////////

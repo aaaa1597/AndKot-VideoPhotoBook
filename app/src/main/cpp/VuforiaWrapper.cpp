@@ -250,13 +250,15 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_initRendering(JNIEnv *env, jclass c
 
 JNIEXPORT void JNICALL
 Java_com_tks_videophotobook_VuforiaWrapperKt_setTextures(JNIEnv *env, jclass clazz,
-                                                                              jint astronautWidth,
-                                                                              jint astronautHeight,
-                                                                              jobject astronautByteBuffer) {
+                                                        jint astronautWidth, jint astronautHeight, jobject astronautByteBuffer,
+                                                        jint pauseWidth, jint pauseHeight, jobject pauseByteBuffer) {
     // Textures are loaded using the BitmapFactory which isn't available from the NDK.
     // They are loaded in the Kotlin code and passed to this method to create GLES textures.
     auto astronautBytes = static_cast<unsigned char*>(env->GetDirectBufferAddress(astronautByteBuffer));
     gWrapperData.renderer.setAstronautTexture(astronautWidth, astronautHeight, astronautBytes);
+    auto pauseBytes = static_cast<unsigned char*>(env->GetDirectBufferAddress(pauseByteBuffer));
+    gWrapperData.renderer.setPauseTexture(pauseWidth, pauseHeight, pauseBytes);
+
 }
 
 
@@ -338,17 +340,30 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass cla
             VuMatrix44F trackableProjection;
             VuMatrix44F trackableModelView;
             VuMatrix44F trackableModelViewScaled;
-            VuImageInfo modelTargetGuideViewImage;
-            VuBool guideViewImageHasChanged;
-            VuVector2F markerSize;
-            std::string tergetName;
-            if (controller.getImageTargetResult(observation, trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, tergetName))
+
+            VuImageTargetObservationTargetInfo imageTargetInfo;
+            VuResult vuret = vuImageTargetObservationGetTargetInfo(observation, &imageTargetInfo);
+            assert(vuret == VU_SUCCESS);
+            VuVector2F markerSize{.data{imageTargetInfo.size.data[0], imageTargetInfo.size.data[1]}};
+            std::string targetName = imageTargetInfo.name;
+
+            if (controller.getImageTargetResult(observation, markerSize, trackableProjection, trackableModelView, trackableModelViewScaled))
             {
-                __android_log_print(ANDROID_LOG_DEBUG, "aaaaa", "!!!! detected target name=%s", tergetName.c_str());
-                retStrs.push_back(tergetName);
-                if(tergetName == "001_stones_jpg")
-                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, tergetName);
-                else if(tergetName == "002_cleyon")
+                __android_log_print(ANDROID_LOG_DEBUG, "aaaaa", "!!!! detected target name=%s", targetName.c_str());
+                retStrs.push_back(targetName);
+                if(targetName == "000_frm")
+                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
+                else if(targetName == "001_frm")
+                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
+                else if(targetName == "002_frm")
+                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
+                else if(targetName == "003_frm")
+                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
+                else if(targetName == "004_frm")
+                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
+                else if(targetName == "005_frm")
+                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
+                else if(targetName == "006_frm")
                     gWrapperData.renderer.renderImageTarget(trackableProjection, trackableModelView, trackableModelViewScaled);
             }
         }

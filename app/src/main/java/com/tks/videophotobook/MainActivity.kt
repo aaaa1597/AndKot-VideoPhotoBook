@@ -104,9 +104,17 @@ class MainActivity : AppCompatActivity() {
                                                             rewind()
                                                         }
                                                     }
+                val pausebitmap = loadBitmapFromAssets(this@MainActivity, "pause.png")
+                val pauseTexture: ByteBuffer? = pausebitmap?.let { bitmap ->
+                    ByteBuffer.allocateDirect(bitmap.byteCount).apply {
+                        bitmap.copyPixelsToBuffer(this)
+                        rewind()
+                    }
+                }
 
-                if (astronautTexture != null) {
-                    setTextures(astronautbitmap.width, astronautbitmap.height, astronautTexture)
+                if (astronautTexture != null && pauseTexture != null) {
+                    setTextures(astronautbitmap.width, astronautbitmap.height, astronautTexture,
+                                pausebitmap.width, pausebitmap.height, pauseTexture)
                 } else {
                     Log.e("VuforiaSample", "Failed to load astronaut or lander texture")
                 }

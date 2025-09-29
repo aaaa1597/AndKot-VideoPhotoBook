@@ -23,6 +23,13 @@ GLESRenderer::init(AAssetManager* assetManager)
     _vuProjectionMatrixLoc = glGetUniformLocation(_vProgram, "u_ProjectionMatrix");
     _vuSamplerOES = glGetUniformLocation(_vProgram, "u_SamplerOES");
 
+    /* Setup for Pause.png rendering */
+    _pProgram = GLESUtils::createProgramFromBuffer(VERTEX_SHADER_PAUSE, FRAGMENT_SHADER_PAUSE);
+    _paPosition = glGetAttribLocation(_vProgram, "a_Position");
+    _paTexCoordLoc = glGetAttribLocation(_vProgram, "a_TexCoord");
+    _puProjectionMatrixLoc = glGetUniformLocation(_vProgram, "u_ProjectionMatrix");
+    _puSampler2D = glGetUniformLocation(_vProgram, "u_Sampler2D");
+
     // Setup for Video Background rendering
     mVbShaderProgramID = GLESUtils::createProgramFromBuffer(textureVertexShaderSrc, textureFragmentShaderSrc);
     mVbVertexPositionHandle = glGetAttribLocation(mVbShaderProgramID, "vertexPosition");
@@ -65,7 +72,7 @@ GLESRenderer::init(AAssetManager* assetManager)
             return false;
         }
         data.clear();
-        mAstronautTextureUnit = -1;
+        mAstronautTextureId = -1;
     }
 
     return true;
@@ -80,10 +87,15 @@ GLESRenderer::deinit()
         GLESUtils::destroyTexture(mModelTargetGuideViewTextureUnit);
         mModelTargetGuideViewTextureUnit = -1;
     }
-    if (mAstronautTextureUnit != -1)
+    if (mAstronautTextureId != -1)
     {
-        GLESUtils::destroyTexture(mAstronautTextureUnit);
-        mAstronautTextureUnit = -1;
+        GLESUtils::destroyTexture(mAstronautTextureId);
+        mAstronautTextureId = -1;
+    }
+    if (mPauseTextureId != -1)
+    {
+        GLESUtils::destroyTexture(mPauseTextureId);
+        mPauseTextureId = -1;
     }
 }
 
@@ -91,9 +103,13 @@ GLESRenderer::deinit()
 void
 GLESRenderer::setAstronautTexture(int width, int height, unsigned char* bytes)
 {
-    createTexture(width, height, bytes, mAstronautTextureUnit);
+    createTexture(width, height, bytes, mAstronautTextureId);
 }
 
+void
+GLESRenderer::setPauseTexture(int width, int height, unsigned char* bytes) {
+    createTexture(width, height, bytes, mPauseTextureId);
+}
 
 void
 GLESRenderer::renderVideoBackground(const VuMatrix44F& projectionMatrix, const float* vertices, const float* textureCoordinates,
@@ -294,7 +310,7 @@ GLESRenderer::renderImageTarget(VuMatrix44F& projectionMatrix, VuMatrix44F& mode
 
     VuMatrix44F modelViewProjectionMatrix = vuMatrix44FMultiplyMatrix(projectionMatrix, modelViewMatrix);
     renderModel(modelViewProjectionMatrix, mAstronautVertexCount, mAstronautVertices.data(), mAstronautTexCoords.data(),
-                mAstronautTextureUnit);
+                mAstronautTextureId);
 }
 
 

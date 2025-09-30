@@ -92,10 +92,10 @@ GLESRenderer::deinit()
         GLESUtils::destroyTexture(mAstronautTextureId);
         mAstronautTextureId = -1;
     }
-    if (mPauseTextureId != -1)
+    if (_pTextureId != -1)
     {
-        GLESUtils::destroyTexture(mPauseTextureId);
-        mPauseTextureId = -1;
+        GLESUtils::destroyTexture(_pTextureId);
+        _pTextureId = -1;
     }
 }
 
@@ -108,7 +108,7 @@ GLESRenderer::setAstronautTexture(int width, int height, unsigned char* bytes)
 
 void
 GLESRenderer::setPauseTexture(int width, int height, unsigned char* bytes) {
-    createTexture(width, height, bytes, mPauseTextureId);
+    createTexture(width, height, bytes, _pTextureId);
 }
 
 void

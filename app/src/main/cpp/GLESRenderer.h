@@ -156,7 +156,6 @@ private: // data members
     std::vector<float> mAstronautVertices;
     std::vector<float> mAstronautTexCoords;
     GLuint mAstronautTextureId = -1;
-    GLuint mPauseTextureId = -1;
 };
 
 #endif //_VUFORIA_GLESRENDERER_H_

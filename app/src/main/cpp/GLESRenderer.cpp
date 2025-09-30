@@ -166,6 +166,70 @@ GLESRenderer::renderWorldOrigin(VuMatrix44F& projectionMatrix, VuMatrix44F& mode
 }
 
 void
+GLESRenderer::renderPause(VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix, VuMatrix44F& scaledModelViewMatrix, const VuVector2F &markerSize, const std::string &targetName) {
+    VuMatrix44F scaledModelViewProjectionMatrix = vuMatrix44FMultiplyMatrix(projectionMatrix, scaledModelViewMatrix);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glUseProgram(_pProgram);
+
+    const GLfloat vertices[] = {
+        -0.5, -0.5, 0.0f, /* 左下 */
+         0.5, -0.5, 0.0f, /* 右下 */
+        -0.5,  0.5, 0.0f, /* 左上 */
+         0.5,  0.5, 0.0f  /* 右上 */
+    };
+
+    const GLfloat texCoords[] = {
+        0.0f, 1.0f, /* 左下 */
+        1.0f, 1.0f, /* 右下 */
+        0.0f, 0.0f, /* 左上 */
+        1.0f, 0.0f  /* 右上 */
+    };
+
+    glVertexAttribPointer(_paPosition, 3, GL_FLOAT, GL_FALSE, 0, vertices);
+    glVertexAttribPointer(_paTexCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, texCoords);
+    glEnableVertexAttribArray(_paPosition);
+    glEnableVertexAttribArray(_paTexCoordLoc);
+
+    glUniformMatrix4fv(_vuProjectionMatrixLoc, 1, GL_FALSE, &scaledModelViewProjectionMatrix.data[0]);
+
+    /* 当たり判定用に板ポリ座標をNDC(正規化デバイス座標)に変換して保持 */
+    std::array<glm::vec2, 4> ndcQuadPoints = {};
+    int idx = 0;
+    for(int lpct : {0,1,3,2/*左下→右下→右上→左上→左下の順番にする必要がある*/}) {
+        glm::vec4 pos = glm::vec4(vertices[lpct*3], vertices[lpct*3+1],vertices[lpct*3+2],1.0f);
+        glm::vec4 glpos = glm::make_mat4(scaledModelViewProjectionMatrix.data) * pos;
+        glm::vec3 ndcpos = glm::vec3(glpos) / glpos.w;
+        ndcQuadPoints[idx++] = glm::vec2(ndcpos);
+    }
+    _ndcQuadPoints[targetName] = std::pair(std::chrono::system_clock::now(), ndcQuadPoints);
+    /* 古い(1000[ms]過ぎた)データは削除する */
+    for (auto it = _ndcQuadPoints.begin(); it != _ndcQuadPoints.end(); ) {
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now() - it->second.first
+        );
+        if (duration.count() > 1000)
+            it = _ndcQuadPoints.erase(it);  /* erase() は次のイテレータを返す */
+        else
+            ++it;
+    }
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _pTextureId);
+    glUniform1i(_puSampler2D, 0);
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    glDisableVertexAttribArray(_paPosition);
+    glDisableVertexAttribArray(_paTexCoordLoc);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUseProgram(0);
+}
+
+void
 GLESRenderer::renderVideoPlayback(VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix, VuMatrix44F& scaledModelViewMatrix, const VuVector2F &markerSize, const std::string &targetName) {
     VuMatrix44F scaledModelViewProjectionMatrix = vuMatrix44FMultiplyMatrix(projectionMatrix, scaledModelViewMatrix);
 

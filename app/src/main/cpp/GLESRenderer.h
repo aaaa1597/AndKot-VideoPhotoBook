@@ -44,6 +44,9 @@ public:
     /// Render augmentation for the world origin
     void renderWorldOrigin(VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix);
 
+    /* Render a bounding box augmentation on an Pause image */
+    void renderPause(VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix, VuMatrix44F& scaledModelViewMatrix, const VuVector2F &markerSize, const std::string &targetName);
+
     /* Render a bounding box augmentation on an Video PlayBack */
     void renderVideoPlayback(VuMatrix44F& projectionMatrix, VuMatrix44F& modelViewMatrix, VuMatrix44F& scaledModelViewMatrix, const VuVector2F &markerSize, const std::string &targetName);
 

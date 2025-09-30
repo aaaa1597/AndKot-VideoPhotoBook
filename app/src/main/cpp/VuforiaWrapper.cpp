@@ -352,15 +352,15 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass cla
                 __android_log_print(ANDROID_LOG_DEBUG, "aaaaa", "!!!! detected target name=%s", targetName.c_str());
                 retStrs.push_back(targetName);
                 if(targetName == "000_frm")
-                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
+                    gWrapperData.renderer.renderPause(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
                 else if(targetName == "001_frm")
-                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
+                    gWrapperData.renderer.renderPause(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
                 else if(targetName == "002_frm")
-                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
+                    gWrapperData.renderer.renderPause(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
                 else if(targetName == "003_frm")
-                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
+                    gWrapperData.renderer.renderPause(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
                 else if(targetName == "004_frm")
-                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
+                    gWrapperData.renderer.renderPause(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
                 else if(targetName == "005_frm")
                     gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
                 else if(targetName == "006_frm")

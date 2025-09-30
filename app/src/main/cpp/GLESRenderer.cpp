@@ -25,10 +25,10 @@ GLESRenderer::init(AAssetManager* assetManager)
 
     /* Setup for Pause.png rendering */
     _pProgram = GLESUtils::createProgramFromBuffer(VERTEX_SHADER_PAUSE, FRAGMENT_SHADER_PAUSE);
-    _paPosition = glGetAttribLocation(_vProgram, "a_Position");
-    _paTexCoordLoc = glGetAttribLocation(_vProgram, "a_TexCoord");
-    _puProjectionMatrixLoc = glGetUniformLocation(_vProgram, "u_ProjectionMatrix");
-    _puSampler2D = glGetUniformLocation(_vProgram, "u_Sampler2D");
+    _paPosition = glGetAttribLocation(_pProgram, "a_Position");
+    _paTexCoordLoc = glGetAttribLocation(_pProgram, "a_TexCoord");
+    _puProjectionMatrixLoc = glGetUniformLocation(_pProgram, "u_ProjectionMatrix");
+    _puSampler2D = glGetUniformLocation(_pProgram, "u_Sampler2D");
 
     // Setup for Video Background rendering
     mVbShaderProgramID = GLESUtils::createProgramFromBuffer(textureVertexShaderSrc, textureFragmentShaderSrc);

@@ -27,9 +27,11 @@ import androidx.activity.addCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.os.HandlerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
@@ -140,7 +142,7 @@ class MainActivity : AppCompatActivity() {
                 /* map(key:targetName,val:uri)を生成 */
                 val cacheMp4Files = (externalCacheDir ?: cacheDir).listFiles { _, name -> name.endsWith(".mp4") }?.sortedBy { it.name } ?: emptyList()
                 /* cache配下のmp4ファイルURIリストを生成 */
-                val uris = cacheMp4Files.map { Uri.fromFile(it) }
+                val uris = cacheMp4Files.map { file -> FileProvider.getUriForFile(this@MainActivity, "${packageName}.fileprovider", file) }
                 /* assets配下のxmlファイルからTargetName一覧を生成 */
                 val xmlfiles = assets.list("")?.filter { it.endsWith(".xml") } ?: emptyList()
                 val targetNames = parseXmlFromAssets(this@MainActivity, xmlfiles[0]).sortedBy { it } /* TargetName一覧をソートしておく */
@@ -161,6 +163,10 @@ class MainActivity : AppCompatActivity() {
                                         override fun onVideoSizeChanged(videoSize: VideoSize) {
                                             /* Pass the video size to the C++ side. */
                                             nativeSetVideoSize(videoSize.width, videoSize.height)
+                                        }
+
+                                        override fun onPlayerError(error: PlaybackException) {
+                                            Log.e("aaaaa", "erroe!! ExoPlayer error: ${error.errorCodeName}, ${error.errorCode}, ${error.message}")
                                         }
                                     })
                         }
@@ -256,8 +262,8 @@ class MainActivity : AppCompatActivity() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 super.onDoubleTap(e)
                 handler.removeCallbacks(singleTapAction)
-//                    val targetName = checkHit(e.x, e.y,_binding.viwGlsurface.width.toFloat(), _binding.viwGlsurface.height.toFloat())
-//                    Log.d("aaaaa", "!!! Hit !!! targetName=$targetName")
+//                val targetName = checkHit(e.x, e.y,_binding.viwGlsurface.width.toFloat(), _binding.viwGlsurface.height.toFloat())
+//                Log.d("aaaaa", "!!! Hit !!! targetName=$targetName")
                 isFullScreenMode = !isFullScreenMode
                 setFullScreenMode(isFullScreenMode)
                 return true

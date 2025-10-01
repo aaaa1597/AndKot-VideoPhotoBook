@@ -212,7 +212,9 @@ class MainActivity : AppCompatActivity() {
                     Log.d("aaaaa", "!!! Detected Target Changed !!! targetName=$_nowPlayingTarget -> $delectedTarget")
 
                     if(_nowPlayingTarget!="" && delectedTarget=="") {
-                        _exoPlayer.pause()
+                        CoroutineScope(Dispatchers.Main).launch {
+                            _exoPlayer.pause()
+                        }
                     }
                     else if(_nowPlayingTarget != delectedTarget) {
                         _nowPlayingTarget = delectedTarget

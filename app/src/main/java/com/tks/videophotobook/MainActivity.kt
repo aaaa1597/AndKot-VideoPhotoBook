@@ -12,7 +12,6 @@ import android.net.Uri
 import android.opengl.GLSurfaceView
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.GestureDetector
@@ -30,6 +29,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.HandlerCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
@@ -45,6 +45,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.Timer
+import java.util.concurrent.CountDownLatch
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 import kotlin.concurrent.schedule
@@ -65,18 +66,10 @@ class MainActivity : AppCompatActivity() {
     private var mHeight = 0
     private var mPermissionsRequested = false;
     private lateinit var _exoPlayer: ExoPlayer
+    private var _exoPlayer_isPlaying = false
     private lateinit var _surfaceTexture: SurfaceTexture
     private lateinit var _surface: Surface
-    private var _nowTargetName: String = ""
-
-    /* 複数動画切り替えの例 */
-//    fun switchVideo(uri: Uri) {
-//        val mediaItem = MediaItem.fromUri(uri)
-//        _exoPlayer.setMediaItem(mediaItem)
-//        _exoPlayer.prepare()
-//        _exoPlayer.playWhenReady = true
-//    }
-
+    private var _nowPlayingTarget: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -171,7 +164,8 @@ class MainActivity : AppCompatActivity() {
                                         }
                                     })
                         }
-                    /* Create the surfaceTexture */
+
+                    /* Initialize the surfaceTexture/Surface */
                     _surfaceTexture = SurfaceTexture(textureId)
                     _surface = Surface(_surfaceTexture)
                     _exoPlayer.setVideoSurface(_surface)
@@ -188,7 +182,7 @@ class MainActivity : AppCompatActivity() {
             override fun onDrawFrame(gl: GL10) {
                 if (mVuforiaStarted) {
 
-                    if(_exoPlayer.isPlaying)
+                    if(_exoPlayer_isPlaying)
                         _surfaceTexture.updateTexImage()
 
                     if (mSurfaceChanged || mWindowDisplayRotation != this@MainActivity.display.rotation) {
@@ -200,23 +194,20 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     // OpenGL rendering of Video Background and augmentations is implemented in native code
-                    val nowTargetName = renderFrame(_nowTargetName)
-                    Handler(Looper.getMainLooper()).post {
-                        for( (key, value) in mp4UriMap) {
-                            /* 検出してて未再生なら再生 */
-                            if(detectTargetStrs.contains(key) and !value.isPlaying) {
-                                value.exoPlayer.play()
-                                value.isPlaying = true
-                            }
-                            /* 検出なしで再生中なら停止 */
-                            else if( !detectTargetStrs.contains(key) and value.isPlaying) {
-                                value.exoPlayer.pause()
-                                value.isPlaying = false
-                            }
-                        }
-                    }
-                    if (detectTargetStrs.size>0 && _binding.loadingIndicator.visibility != View.GONE) {
-                        lifecycleScope.launch {
+                    val delectedTarget = renderFrame(_nowPlayingTarget)
+                    if(delectedTarget == "waiting...") return
+
+                    Log.d("aaaaa", "!!! Detected Target Changed !!! targetName=$_nowPlayingTarget -> $delectedTarget")
+
+                    if(_nowPlayingTarget != delectedTarget) {
+                        _nowPlayingTarget = delectedTarget
+                        /* 新規Targetを再生 */
+                        val latch = CountDownLatch(1)
+                        switchMedia(delectedTarget, latch)
+                        /* 完了待ち(無限待機) */
+                        try {latch.await()} catch (e: InterruptedException) {}
+                        /* loadingIndicatorは非表示に */
+                        CoroutineScope(Dispatchers.Main).launch {
                             _binding.loadingIndicator.visibility = View.GONE
                         }
                     }
@@ -283,6 +274,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /* 指定Target動画に差替え */
+    private fun switchMedia(target: String, latch: CountDownLatch) {
+        CoroutineScope(Dispatchers.Main).launch {
+            _exoPlayer.stop()
+            _exoPlayer.clearMediaItems()
+            val mediaItem = MediaItem.fromUri(mp4UriMap[target]!!)
+            _exoPlayer.setMediaItem(mediaItem)
+            _exoPlayer.prepare()
+            _exoPlayer.playWhenReady = true
+            _exoPlayer.addListener( object : Player.Listener {
+                override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                    super.onPlayWhenReadyChanged(playWhenReady, reason)
+                    if(playWhenReady) _exoPlayer_isPlaying = true
+                    else              _exoPlayer_isPlaying = false
+                }
+            })
+            latch.countDown()
+        }
+    }
+
     private fun runtimePermissionsGranted(): Boolean {
         var result = true
         for (permission in REQUIRED_PERMISSIONS) {
@@ -338,12 +349,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        for( (key, value) in mp4UriMap) {
-            value.surface.release()
-            value.surfaceTexture.release()
-            value.exoPlayer.release()
-        }
         _exoPlayer.release()
+        _surfaceTexture.release()
+        _surface.release()
         mp4UriMap.clear()
         // Hide the GLView while we clean up
         _binding.viwGlsurface.visibility = View.INVISIBLE

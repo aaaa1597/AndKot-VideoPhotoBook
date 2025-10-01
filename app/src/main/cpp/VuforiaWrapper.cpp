@@ -292,15 +292,20 @@ jobjectArray makeRetString(JNIEnv *env, std::vector<std::string> strs) {
     return retStringArray;
 }
 
-JNIEXPORT jobjectArray JNICALL
-Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass clazz) {
+JNIEXPORT jstring JNICALL
+Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass clazz, jstring now_playing_target) {
     if (!controller.isARStarted())
     {
-        std::vector<std::string> none{"none"};
-        return makeRetString(env, none);
+        return env->NewStringUTF("waiting...");
     }
 
-    std::vector<std::string> retStrs;
+    /* 戻り値定義 */
+    std::string retDetectedTarget = "";
+    /* 引数jstring を std::string に変換 */
+    const char* nativeStr = env->GetStringUTFChars(now_playing_target, nullptr);
+    std::string nowPlayingTarget(nativeStr);
+    env->ReleaseStringUTFChars(now_playing_target, nativeStr);
+
     // Clear colour and depth buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -345,26 +350,22 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass cla
             VuResult vuret = vuImageTargetObservationGetTargetInfo(observation, &imageTargetInfo);
             assert(vuret == VU_SUCCESS);
             VuVector2F markerSize{.data{imageTargetInfo.size.data[0], imageTargetInfo.size.data[1]}};
-            std::string targetName = imageTargetInfo.name;
 
             if (controller.getImageTargetResult(observation, markerSize, trackableProjection, trackableModelView, trackableModelViewScaled))
             {
-                __android_log_print(ANDROID_LOG_DEBUG, "aaaaa", "!!!! detected target name=%s", targetName.c_str());
-                retStrs.push_back(targetName);
-                if(targetName == "000_frm")
-                    gWrapperData.renderer.renderPause(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
-                else if(targetName == "001_frm")
-                    gWrapperData.renderer.renderPause(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
-                else if(targetName == "002_frm")
-                    gWrapperData.renderer.renderPause(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
-                else if(targetName == "003_frm")
-                    gWrapperData.renderer.renderPause(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
-                else if(targetName == "004_frm")
-                    gWrapperData.renderer.renderPause(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
-                else if(targetName == "005_frm")
-                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, targetName);
-                else if(targetName == "006_frm")
-                    gWrapperData.renderer.renderImageTarget(trackableProjection, trackableModelView, trackableModelViewScaled);
+                __android_log_print(ANDROID_LOG_DEBUG, "aaaaa", "owPlayingTarget=%s detected!!!! target name=%s", nowPlayingTarget.c_str(), imageTargetInfo.name);
+                if(nowPlayingTarget.empty()) {
+                    nowPlayingTarget = imageTargetInfo.name;
+                    retDetectedTarget = imageTargetInfo.name;
+                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, imageTargetInfo.name);
+                }
+                else if(nowPlayingTarget != imageTargetInfo.name)
+                    gWrapperData.renderer.renderPause(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, imageTargetInfo.name);
+                else if(nowPlayingTarget == imageTargetInfo.name) {
+                    retDetectedTarget = imageTargetInfo.name;
+                    gWrapperData.renderer.renderVideoPlayback(trackableProjection, trackableModelView, trackableModelViewScaled, markerSize, imageTargetInfo.name);
+                }
+//              gWrapperData.renderer.renderImageTarget(trackableProjection, trackableModelView, trackableModelViewScaled);
             }
         }
         imageTargetList.reset();
@@ -372,7 +373,7 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass cla
 
     controller.finishRender();
 
-    return makeRetString(env, retStrs);
+    return env->NewStringUTF(retDetectedTarget.c_str());
 }
 
 

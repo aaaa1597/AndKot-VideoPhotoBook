@@ -165,6 +165,12 @@ class MainActivity : AppCompatActivity() {
                                             nativeSetVideoSize(videoSize.width, videoSize.height)
                                         }
 
+                                        override fun onIsPlayingChanged(isPlaying: Boolean) {
+                                            super.onIsPlayingChanged(isPlaying)
+                                            Log.d("aaaaa", "onIsPlayingChanged isPlaying=$isPlaying")
+                                            _exoPlayer_isPlaying = isPlaying
+                                        }
+
                                         override fun onPlayerError(error: PlaybackException) {
                                             Log.e("aaaaa", "erroe!! ExoPlayer error: ${error.errorCodeName}, ${error.errorCode}, ${error.message}")
                                         }
@@ -205,7 +211,10 @@ class MainActivity : AppCompatActivity() {
 
                     Log.d("aaaaa", "!!! Detected Target Changed !!! targetName=$_nowPlayingTarget -> $delectedTarget")
 
-                    if(_nowPlayingTarget != delectedTarget) {
+                    if(_nowPlayingTarget!="" && delectedTarget=="") {
+                        _exoPlayer.pause()
+                    }
+                    else if(_nowPlayingTarget != delectedTarget) {
                         _nowPlayingTarget = delectedTarget
                         /* 新規Targetを再生 */
                         val latch = CountDownLatch(1)
@@ -289,13 +298,6 @@ class MainActivity : AppCompatActivity() {
             _exoPlayer.setMediaItem(mediaItem)
             _exoPlayer.prepare()
             _exoPlayer.playWhenReady = true
-            _exoPlayer.addListener( object : Player.Listener {
-                override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-                    super.onPlayWhenReadyChanged(playWhenReady, reason)
-                    if(playWhenReady) _exoPlayer_isPlaying = true
-                    else              _exoPlayer_isPlaying = false
-                }
-            })
             latch.countDown()
         }
     }

@@ -353,7 +353,7 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass cla
 
             if (controller.getImageTargetResult(observation, markerSize, trackableProjection, trackableModelView, trackableModelViewScaled))
             {
-                __android_log_print(ANDROID_LOG_DEBUG, "aaaaa", "owPlayingTarget=%s detected!!!! target name=%s", nowPlayingTarget.c_str(), imageTargetInfo.name);
+//                __android_log_print(ANDROID_LOG_DEBUG, "aaaaa", "owPlayingTarget=%s detected!!!! target name=%s", nowPlayingTarget.c_str(), imageTargetInfo.name);
                 if(nowPlayingTarget.empty()) {
                     nowPlayingTarget = imageTargetInfo.name;
                     retDetectedTarget = imageTargetInfo.name;

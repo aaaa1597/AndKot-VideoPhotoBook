@@ -325,13 +325,6 @@ Java_com_tks_videophotobook_VuforiaWrapperKt_renderFrame(JNIEnv *env, jclass cla
         gWrapperData.renderer.renderVideoBackground(renderState.vbProjectionMatrix, renderState.vbMesh->pos, renderState.vbMesh->tex,
                                                     renderState.vbMesh->numFaces, renderState.vbMesh->faceIndices, vbTextureUnit);
 
-        VuMatrix44F worldOriginProjection;
-        VuMatrix44F worldOriginModelView;
-        if (controller.getOrigin(worldOriginProjection, worldOriginModelView))
-        {
-            gWrapperData.renderer.renderWorldOrigin(worldOriginProjection, worldOriginModelView);
-        }
-
         auto [imageTargetList, CNT] = controller.createImageTargetList();
         for (int idx = 0; idx < CNT; idx++) {
             VuObservation* observation = nullptr;

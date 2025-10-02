@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "VideoPhotoBook"
+rootProject.name = "VideoPhotoBook4ai"
 include(":app")
  

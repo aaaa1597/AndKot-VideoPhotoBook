@@ -209,7 +209,8 @@ class MainActivity : AppCompatActivity() {
                     val delectedTarget = renderFrame(_nowPlayingTarget)
                     if(delectedTarget == "waiting...") return
 
-                    Log.d("aaaaa", "!!! Detected Target Changed !!! targetName=$_nowPlayingTarget -> $delectedTarget")
+                    if(_nowPlayingTarget!="" && delectedTarget!="")
+                        Log.d("aaaaa", "!!! Detected Target Changed !!! targetName=$_nowPlayingTarget -> $delectedTarget")
 
                     if(_nowPlayingTarget!="" && delectedTarget=="") {
                         _nowPlayingTarget = delectedTarget

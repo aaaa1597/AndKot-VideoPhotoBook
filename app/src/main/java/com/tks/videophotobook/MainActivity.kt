@@ -212,6 +212,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d("aaaaa", "!!! Detected Target Changed !!! targetName=$_nowPlayingTarget -> $delectedTarget")
 
                     if(_nowPlayingTarget!="" && delectedTarget=="") {
+                        _nowPlayingTarget = delectedTarget
                         CoroutineScope(Dispatchers.Main).launch {
                             _exoPlayer.pause()
                         }
@@ -248,20 +249,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-            /* シングルタップの実際の処理 */
-            val handler = HandlerCompat.createAsync(Looper.getMainLooper())
             @UnstableApi
-            private val singleTapAction = Runnable {
-                /* 再生/停止/早送り/巻戻しコントローラ表示/非表示 */
-                if( _binding.viwPlayerControls.isFullyVisible)
-                    _binding.viwPlayerControls.hide()
-                else
-                    _binding.viwPlayerControls.show()
-            }
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                val targetName = checkHit(e.x, e.y,_binding.viwGlsurface.width.toFloat(), _binding.viwGlsurface.height.toFloat())
+                if(targetName != _nowPlayingTarget && targetName != "") {
+                    /* 動画差し替え */
+                    _nowPlayingTarget = targetName
+                    switchMedia(targetName)
+                }
+                else {
+                    /* 再生/停止/早送り/巻戻しコントローラ表示/非表示 */
+                    if( _binding.viwPlayerControls.isFullyVisible)
+                        _binding.viwPlayerControls.hide()
+                    else
+                        _binding.viwPlayerControls.show()
+                }
 
-            @UnstableApi
-            override fun onSingleTapUp(e: MotionEvent): Boolean {
-                handler.postDelayed( singleTapAction, 200.toLong()) // シングルタップの処理を少し遅延させる
                 cameraPerformAutoFocus()
                 Timer("RestoreAutoFocus", false).schedule(2000) {
                     cameraRestoreAutoFocus()
@@ -272,11 +275,17 @@ class MainActivity : AppCompatActivity() {
             @UnstableApi
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 super.onDoubleTap(e)
-                handler.removeCallbacks(singleTapAction)
-//                val targetName = checkHit(e.x, e.y,_binding.viwGlsurface.width.toFloat(), _binding.viwGlsurface.height.toFloat())
-//                Log.d("aaaaa", "!!! Hit !!! targetName=$targetName")
-                isFullScreenMode = !isFullScreenMode
-                setFullScreenMode(isFullScreenMode)
+                val targetName = checkHit(e.x, e.y,_binding.viwGlsurface.width.toFloat(), _binding.viwGlsurface.height.toFloat())
+                if(targetName != _nowPlayingTarget && targetName != "") {
+                    /* 動画差し替え */
+                    _nowPlayingTarget = targetName
+                    switchMedia(targetName)
+                }
+                else {
+                    /* フルスクリーンモード切替 */
+                    isFullScreenMode = !isFullScreenMode
+                    setFullScreenMode(isFullScreenMode)
+                }
                 return true
             }
         })
@@ -292,6 +301,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     /* 指定Target動画に差替え */
+    private fun switchMedia(target: String) {
+        _exoPlayer.stop()
+        _exoPlayer.clearMediaItems()
+        val mediaItem = MediaItem.fromUri(mp4UriMap[target]!!)
+        _exoPlayer.setMediaItem(mediaItem)
+        _exoPlayer.prepare()
+        _exoPlayer.playWhenReady = true
+    }
+
     private fun switchMedia(target: String, latch: CountDownLatch) {
         CoroutineScope(Dispatchers.Main).launch {
             _exoPlayer.stop()
